@@ -1,0 +1,22 @@
+{
+  "name": "express-service-regions",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thecodebureau/express-service-regions.git"
+  },
+  "keywords": [
+    "Express"
+  ],
+  "author": "Linus Miller <lohfu@lohfu.io> (https://lohfu.io/)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/thecodebureau/express-service-regions/issues"
+  },
+  "homepage": "https://github.com/thecodebureau/express-service-regions#readme"
+}
