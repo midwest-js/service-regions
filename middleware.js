@@ -95,13 +95,15 @@ function findByPage(nested) {
     if (!page)
       return cb();
 
-    const path = page.path;
+    const path = page.routePath;
+
+    let regions;
 
     if (_.has(cache, path)) {
-      page.regions = cache[path];
+      regions = cache[path];
 
       if (lang)
-        page.regions = extractLang(page.regions, lang);
+        regions = extractLang(regions, lang);
 
       if (nested && page.pages) {
         page.pages = page.pages.map(_.clone);
@@ -112,7 +114,7 @@ function findByPage(nested) {
           fnc(_page, lang, nested, cb);
         });
       } else {
-        cb();
+        cb(null, regions);
       }
     } else {
       Region.find({ path: path }).lean().exec(function (err, regions) {
@@ -123,7 +125,7 @@ function findByPage(nested) {
         }, {});
 
         if (lang)
-          page.regions = extractLang(page.regions, lang);
+          regions = extractLang(page.regions, lang);
 
         if (nested && page.pages) {
           page.pages = page.pages.map(_.clone);
@@ -134,7 +136,7 @@ function findByPage(nested) {
             fnc(_page, lang, nested, cb);
           });
         } else {
-          cb();
+          cb(null, regions);
         }
       });
     }
@@ -143,7 +145,13 @@ function findByPage(nested) {
   return Object.defineProperty(function (req, res, next) {
     res.locals.page = _.clone(res.locals.page);
 
-    fnc(res.locals.page, res.lang, nested, next);
+    fnc(res.locals.page, res.lang, nested, function (err, regions) {
+      if (err) return next(err);
+
+      res.locals.regions = regions;
+
+      next();
+    });
   }, 'name', { value: 'findByPage' });
 }
 
