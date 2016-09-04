@@ -1,8 +1,8 @@
-'use strict';
+'use strict'
 
-const isAuthenticated = require('express-module-membership/passport/authorization-middleware').isAuthenticated;
+const isAuthenticated = require('express-module-membership/passport/authorization-middleware').isAuthenticated
 
-const mw = require('./middleware');
+const mw = require('./middleware')
 
 module.exports = [
   [ '/api/regions/', 'get', [ isAuthenticated, mw.formatQuery, mw.paginate, mw.find ]],
@@ -11,4 +11,4 @@ module.exports = [
   [ '/api/regions/:id', 'put', [ isAuthenticated, mw.put ]],
   [ '/api/regions/:id', 'patch', [ isAuthenticated, mw.patch ]],
   [ '/api/regions/:id', 'delete', [ isAuthenticated, mw.remove ]],
-];
+]
