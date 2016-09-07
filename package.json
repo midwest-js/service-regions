@@ -21,5 +21,8 @@
   "bugs": {
     "url": "https://github.com/thebitmill/midwest-service-regions/issues"
   },
-  "homepage": "https://github.com/thebitmill/midwest-service-regions#readme"
+  "homepage": "https://github.com/thebitmill/midwest-service-regions#readme",
+  "dependencies": {
+    "midwest": "0.0.2"
+  }
 }

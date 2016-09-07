@@ -9,8 +9,8 @@ function extractLang(region, lang) {
 const Region = require('./model')
 
 const mw = {
-  formatQuery: require('warepot/format-query'),
-  paginate: require('warepot/paginate')
+  formatQuery: require('midwest/middleware/format-query'),
+  paginate: require('midwest/middleware/paginate')
 }
 
 let cache = {}
