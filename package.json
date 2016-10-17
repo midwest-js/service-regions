@@ -23,6 +23,8 @@
   },
   "homepage": "https://github.com/thebitmill/midwest-service-regions#readme",
   "dependencies": {
+    "express": "^4.14.0",
+    "lodash": "^4.16.4",
     "midwest": "0.0.2"
   }
 }
