@@ -1,7 +1,5 @@
 {
-  "extends": [
-    "airbnb-base"
-  ],
+  "extends": "airbnb-base",
 
   "parserOptions": {
     "sourceType": "strict"
@@ -16,12 +14,20 @@
     "consistent-return": 0,
     "func-names": 0,
     "global-require": 0,
-    "no-cond-assign": 0,
+    "import/no-extraneous-dependencies": 0,
+    "import/no-unresolved": [2, { "ignore": ["^[^./]"] }],
     "no-console": [1, { "allow": ["warn", "error", "info"] }],
     "no-empty": [2, { "allowEmptyCatch": true }],
     "no-mixed-operators": 0,
     "no-param-reassign": 0,
-    "no-plusplus": [2, { "allowForLoopAfterthoughts": true } ],
-    "no-underscore-dangle": 0
+    "no-shadow": 0,
+    "no-underscore-dangle": 0,
+    "no-void": 0,
+    "prefer-const": [2,{"destructuring": "all"}]
+  },
+
+  "globals": {
+    "ENV": true,
+    "PWD": true
   }
 }
