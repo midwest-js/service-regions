@@ -1,4 +1,5 @@
 'use strict';
+
 const _ = require('lodash');
 
 const rest = require('midwest/middleware/rest');
