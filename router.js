@@ -7,13 +7,13 @@ const { isAdmin } = require('midwest-module-membership/passport/authorization-mi
 const mw = require('./middleware');
 
 router.route('/')
-  .get(mw.formatQuery, mw.paginate, mw.find)
+  .get(mw.formatQuery, mw.paginate, mw.query)
   .post(isAdmin, mw.create);
 
 router.route('/:id')
   .get(isAdmin, mw.findById)
-  .patch(isAdmin, mw.patch)
-  .put(isAdmin, mw.put)
+  .patch(isAdmin, mw.update)
+  .put(isAdmin, mw.replace)
   .delete(isAdmin, mw.remove);
 
 module.exports = router;

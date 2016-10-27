@@ -1,6 +1,9 @@
 'use strict';
-
 const _ = require('lodash');
+
+const rest = require('midwest/middleware/rest');
+const formatQuery = require('midwest/middleware/format-query');
+const paginate = require('midwest/middleware/paginate');
 
 function extractLang(region, lang) {
   return _.mapValues(region, (value) => value[lang]);
@@ -8,53 +11,7 @@ function extractLang(region, lang) {
 
 const Region = require('./model');
 
-const mw = {
-  formatQuery: require('midwest/middleware/format-query'),
-  paginate: require('midwest/middleware/paginate'),
-};
-
 let cache = {};
-
-function create(req, res, next) {
-  Region.create(req.body, (err, region) => {
-    if (err) return next(err);
-
-    res.locals.region = region;
-
-    res.status(201);
-    next();
-  });
-}
-
-function find(req, res, next) {
-  const page = Math.max(0, req.query.page) || 0;
-  const perPage = Math.max(0, req.query.limit) || res.locals.perPage;
-
-  const query = Region.find(_.omit(req.query, 'limit', 'sort', 'page'),
-    null,
-    { sort: req.query.sort || 'path', lean: true });
-
-  if (perPage) {
-    query.limit(perPage).skip(perPage * page);
-  }
-
-  query.exec((err, regions) => {
-    res.locals.regions = regions;
-    next(err);
-  });
-}
-
-function findById(req, res, next) {
-  if (req.params.id === 'new') return next();
-
-  Region.findOne({ _id: req.params.id }).lean().exec((err, region) => {
-    if (err) return next(err);
-
-    res.status(200).locals.region = region;
-
-    next();
-  });
-}
 
 function findByPath(req, res, next) {
   const page = res.locals.page;
@@ -161,25 +118,6 @@ function findByPage(nested) {
   }, 'name', { value: 'findByPage' });
 }
 
-function patch(req, res, next) {
-  Region.findById(req.params.id, (err, region) => {
-    delete req.body._id;
-    delete req.body.__v;
-
-    _.extend(region, req.body);
-
-    cache = {};
-    // if(cache[regions.path])
-    //  delete cache[regions.path]
-
-    return region.save((err) => {
-      if (err) return next(err);
-
-      return res.status(200).json(region);
-    });
-  });
-}
-
 function paths(req, res, next) {
   Region.find().lean().exec((err, regions) => {
     res.locals.paths = _.uniq(regions.map((regions) => regions.path)).sort();
@@ -187,50 +125,32 @@ function paths(req, res, next) {
   });
 }
 
+const mw = rest(Region);
 
-function put(req, res, next) {
-  Region.findById(req.params.id, (err, regions) => {
-    _.difference(_.keys(regions.toObject()), _.keys(req.body)).forEach((key) => {
-      regions[key] = undefined;
-    });
-
-    _.extend(regions, _.omit(req.body, '_id', '__v'));
-
-    cache = {};
-
-    return regions.save((err) => {
-      if (err) return next(err);
-
-      return res.status(200).json(regions);
-    });
-  });
-}
-
-function remove(req, res, next) {
-  Region.findByIdAndRemove(req.params.id, (err, region) => {
-    if (err) return next(err);
-
-    if (region) {
-      res.status(204);
-      res.locals.region = region;
-    }
-
-    return next();
-  });
-}
-
-module.exports = {
-  create,
-  find,
-  findById,
+module.exports = Object.assign({}, mw, {
   findByPath,
   findByPage,
-  formatQuery: mw.formatQuery(['page', 'sort', 'path', 'name'], {
+  formatQuery: formatQuery(['page', 'sort', 'path', 'name'], {
     name: 'regex',
   }),
-  paginate: mw.paginate(Region, 20),
-  patch,
+  paginate: paginate(Region, 20),
   paths,
-  put,
-  remove,
-};
+  replace(req, res, next) {
+    mw.replace(req, res, (err) => {
+      if (err) return next(err);
+
+      cache = {};
+
+      next();
+    });
+  },
+  update(req, res, next) {
+    mw.update(req, res, (err) => {
+      if (err) return next(err);
+
+      cache = {};
+
+      next();
+    });
+  },
+});
