@@ -2,156 +2,55 @@
 
 const _ = require('lodash');
 
-const rest = require('midwest/factories/rest');
+const factory = require('midwest/factories/rest');
 const formatQuery = require('midwest/factories/format-query');
 const paginate = require('midwest/factories/paginate');
 
-function extractLang(region, lang) {
-  return _.mapValues(region, (value) => value[lang]);
+const handlers = require('./handlers');
+
+const mw = factory({
+  plural: 'regions',
+  handlers: handlers,
+});
+
+function create(req, res, next) {
+  Object.assign(req.body, {
+    createdById: req.user.id,
+  });
+
+  mw.create(req, res, next);
 }
 
-const Region = require('./model');
-
-let cache = {};
-
-function findByPath(req, res, next) {
-  const page = res.locals.page;
-  const path = page && page.path || req.path;
-
-  if (_.has(cache, path)) {
-    res.locals.regions = cache[path];
-
-    if (res.lang) {
-      res.locals.regions = extractLang(res.locals.regions, res.lang);
-    }
-
-    return next();
-  }
+function findHtmlByPath(req, res, next) {
+  const path = req.path;
 
   // const paths = page ? _.compact(_.map(page.pages, 'path')) : []
 
   // paths.push(path)
 
-  Region.find({ path }).lean().exec((err, regions) => {
+  handlers.findHtmlByPath(path, (err, html) => {
     if (err) return next(err);
 
-    res.status(200);
-
-    cache[path] = res.locals.regions = regions.reduce((out, value) => {
-      out[value.name] = value.content;
-
-      return out;
-    }, {});
-
-    if (res.lang) {
-      res.locals.regions = extractLang(res.locals.regions, res.lang);
-    }
+    res.locals.regions = html;
 
     next();
   });
 }
 
-function findByPage(nested) {
-  function fnc(page, lang, nested, cb) {
-    if (!page) {
-      return cb();
-    }
-
-    const path = page.routePath;
-
-    let regions;
-
-    if (_.has(cache, path)) {
-      regions = cache[path];
-
-      if (lang) {
-        regions = extractLang(regions, lang);
-      }
-
-      if (nested && page.pages) {
-        page.pages = page.pages.map(_.clone);
-
-        cb = _.after(page.pages.length, cb);
-
-        page.pages.forEach((_page) => {
-          fnc(_page, lang, nested, cb);
-        });
-      } else {
-        cb(null, regions);
-      }
-    } else {
-      Region.find({ path }).lean().exec((err, regions) => {
-        cache[path] = page.regions = regions.reduce((result, value) => {
-          result[value.name] = value.content;
-
-          return result;
-        }, {});
-
-        if (lang) {
-          regions = extractLang(page.regions, lang);
-        }
-
-        if (nested && page.pages) {
-          page.pages = page.pages.map(_.clone);
-
-          cb = _.after(page.pages.length, cb);
-
-          page.pages.forEach((_page) => {
-            fnc(_page, lang, nested, cb);
-          });
-        } else {
-          cb(null, regions);
-        }
-      });
-    }
-  }
-
-  return Object.defineProperty((req, res, next) => {
-    res.locals.page = _.clone(res.locals.page);
-
-    fnc(res.locals.page, res.lang, nested, (err, regions) => {
-      if (err) return next(err);
-
-      res.locals.regions = regions;
-
-      next();
-    });
-  }, 'name', { value: 'findByPage' });
-}
-
 function paths(req, res, next) {
-  Region.find().lean().exec((err, regions) => {
+  handlers.find({}, (err, regions) => {
     res.locals.paths = _.uniq(regions.map((regions) => regions.path)).sort();
     next();
   });
 }
 
-const mw = rest(Region);
 
 module.exports = Object.assign({}, mw, {
-  findByPath,
-  findByPage,
+  create,
+  findHtmlByPath,
   formatQuery: formatQuery(['page', 'sort', 'path', 'name'], {
     name: 'regex',
   }),
-  paginate: paginate(Region, 20),
+  paginate: paginate(handlers.count, 20),
   paths,
-  replace(req, res, next) {
-    mw.replace(req, res, (err) => {
-      if (err) return next(err);
-
-      cache = {};
-
-      next();
-    });
-  },
-  update(req, res, next) {
-    mw.update(req, res, (err) => {
-      if (err) return next(err);
-
-      cache = {};
-
-      next();
-    });
-  },
 });
