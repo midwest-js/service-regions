@@ -1,14 +1,26 @@
 'use strict';
 
-const p = require('path');
-const fs = require('fs');
+const _ = require('lodash');
+// const isEmail = require('validator/lib/isEmail');
+const isURL = require('validator/lib/isURL');
 
-const config = {};
+const tests = {
+  db: (value) => {
+    const keys = ['end', 'query', 'connect', 'begin'];
 
-const fileName = p.join(process.cwd(), 'server/config/languages.js');
+    return keys.every((key) => _.has(value, key));
+  },
+};
 
-if (fs.existsSync(fileName)) {
-  config.languages = require(fileName);
+const config = require('./config-base.js');
+const errored = require('midwest/util/validate')(tests)(config);
+
+if (errored.length) {
+  throw new Error(`Configuration is invalid: ${errored.join(', ')}`);
+}
+
+if (!Object.isFrozen(config)) {
+  throw new Error('Configuration is not frozen');
 }
 
 module.exports = config;

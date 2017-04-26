@@ -10,7 +10,7 @@ const handlers = require('./handlers');
 
 const mw = factory({
   plural: 'regions',
-  handlers: handlers,
+  handlers,
 });
 
 function create(req, res, next) {
@@ -44,6 +44,14 @@ function paths(req, res, next) {
   });
 }
 
+function update(req, res, next) {
+  Object.assign(req.body, {
+    modifiedById: req.user.id,
+    dateModified: new Date(),
+  });
+
+  mw.update(req, res, next);
+}
 
 module.exports = Object.assign({}, mw, {
   create,
@@ -53,4 +61,5 @@ module.exports = Object.assign({}, mw, {
   }),
   paginate: paginate(handlers.count, 20),
   paths,
+  update,
 });

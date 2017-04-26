@@ -10,26 +10,26 @@ const _ = require('lodash');
 const factory = require('midwest/factories/handlers');
 
 // modules > project
-const db = require(p.join(PWD, 'server/db'));
+const config = require('./config');
 
 const columns = ['id', 'name', 'path', 'content', 'createdById', 'dateCreated', 'modifiedById', 'dateModified'];
 
 const handlers = factory({
+  db: config.db,
   table: 'regions',
-  columns: columns,
+  columns,
+  emitter: config.emitter,
 });
 
 let cache = {};
 
-function findHtmlByPath(path, cb) {
+function findHtmlByPath(path) {
   if (_.has(cache, path)) {
-    return cb(null, cache[path]);
+    return Promise.resolve(cache[path]);
   }
 
-  handlers.find({ path }, (err, regions) => {
-    if (err) return cb(err);
-
-    if (!regions || regions.length === 0) return cb();
+  return handlers.find({ path }).then((regions) => {
+    if (!regions || regions.length === 0) return undefined;
 
     const html = cache[path] = regions.reduce((out, value) => {
       out[value.name] = value.html;
@@ -37,31 +37,27 @@ function findHtmlByPath(path, cb) {
       return out;
     }, {});
 
-    cb(null, html);
+    return html;
   });
 }
 
-function replace(id, json, cb) {
-  handlers.replace(id, json, (err, result) => {
-    if (err) return cb(err);
-
+function replace(id, json) {
+  return handlers.replace(id, json).then((result) => {
     if (result.path in cache) {
       _.set(cache, `${result.path}.${result.name}`, result.html);
     }
 
-    cb(null, result);
+    return result.rows[0];
   });
 }
 
-function update(id, json, cb) {
-  handlers.update(id, json, (err, result) => {
-    if (err) return cb(err);
-
+function update(id, json) {
+  return handlers.update(id, json).then((result) => {
     if (result.path in cache) {
       _.set(cache, `${result.path}.${result.name}`, result.html);
     }
 
-    cb(null, result);
+    return result.rows[0];
   });
 }
 
