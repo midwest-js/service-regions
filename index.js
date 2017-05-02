@@ -1,12 +1,10 @@
 'use strict';
 
 const _ = require('lodash');
-const deepFreeze = require('deep-freeze');
+const resolveCache = require('./resolve-cache');
 
-const config = require('./config-base');
-
-exports.configure = (userConfig) => {
-  _.merge(config, userConfig);
-
-  deepFreeze(config);
-};
+module.exports = _.memoize((config) => ({
+  router: require('./router')(config),
+  middleware: require('./middleware')(config),
+  handlers: require('./handlers')(config),
+}), resolveCache());
