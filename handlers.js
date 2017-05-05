@@ -9,7 +9,16 @@ const factory = require('midwest/factories/handlers');
 const resolveCache = require('./resolve-cache');
 
 // TODO enable customizing columns easily
-const columns = ['id', 'name', 'path', 'content', 'createdById', 'dateCreated', 'modifiedById', 'dateModified'];
+const columns = [
+  'id',
+  'name',
+  'path',
+  'content',
+  'createdById',
+  'createdAt',
+  'modifiedById',
+  'modifiedAt',
+];
 
 module.exports = _.memoize((config) => {
   // modules > project
@@ -66,4 +75,4 @@ module.exports = _.memoize((config) => {
     replace,
     update,
   });
-}, resolveCache());
+}, resolveCache);

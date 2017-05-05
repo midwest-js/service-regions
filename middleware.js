@@ -16,9 +16,11 @@ module.exports = _.memoize((config) => {
     handlers,
   });
 
-  function create(req, res, next) {
+  async function create(req, res, next) {
+    const user = await req.user;
+
     Object.assign(req.body, {
-      createdById: req.user.id,
+      createdById: user && user.id,
     });
 
     mw.create(req, res, next);
@@ -45,10 +47,12 @@ module.exports = _.memoize((config) => {
     }).catch(next);
   }
 
-  function update(req, res, next) {
+  async function update(req, res, next) {
+    const user = await req.user;
+
     Object.assign(req.body, {
-      modifiedById: req.user.id,
-      dateModified: new Date(),
+      modifiedById: user && user.id,
+      modifiedAt: new Date(),
     });
 
     mw.update(req, res, next);
@@ -64,4 +68,4 @@ module.exports = _.memoize((config) => {
     paths,
     update,
   });
-}, resolveCache());
+}, resolveCache);

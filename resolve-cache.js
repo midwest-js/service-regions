@@ -2,16 +2,18 @@
 
 const _ = require('lodash');
 
-module.exports = () => {
-  let previous;
+const previous = [];
 
-  return (obj) => {
-    if (previous && (!obj || _.isEqual(obj, previous))) {
-      return previous;
-    } else {
-      previous = obj;
+module.exports = (obj) => {
+  const result = obj ? previous.find((item) => _.isEqual(item, obj)) : _.last(previous);
 
-      return obj;
+  if (result) {
+    return result;
+  } else {
+    if (obj) {
+      previous.push(obj);
     }
-  };
+
+    return obj;
+  }
 };
