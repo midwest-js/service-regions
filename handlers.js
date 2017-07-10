@@ -4,7 +4,8 @@
 const _ = require('lodash');
 
 // modules > midwest
-const factory = require('midwest/factories/handlers');
+const factory = require('midwest/factories/rest-handlers');
+const { one } = require('easy-postgres/result');
 
 const resolveCache = require('./resolve-cache');
 
@@ -30,18 +31,12 @@ module.exports = _.memoize((config) => {
     emitter: config.emitter,
   });
 
-  let cache = {};
-
   function findHtmlByPath(path) {
-    if (_.has(cache, path)) {
-      return Promise.resolve(cache[path]);
-    }
-
     return handlers.find({ path }).then((regions) => {
       if (!regions || regions.length === 0) return undefined;
 
-      const html = cache[path] = regions.reduce((out, value) => {
-        out[value.name] = value.html;
+      const html = regions.reduce((out, value) => {
+        out[value.name] = value.content;
 
         return out;
       }, {});
@@ -51,23 +46,11 @@ module.exports = _.memoize((config) => {
   }
 
   function replace(id, json) {
-    return handlers.replace(id, json).then((result) => {
-      if (result.path in cache) {
-        _.set(cache, `${result.path}.${result.name}`, result.html);
-      }
-
-      return result.rows[0];
-    });
+    return handlers.replace(id, json).then(one);
   }
 
   function update(id, json) {
-    return handlers.update(id, json).then((result) => {
-      if (result.path in cache) {
-        _.set(cache, `${result.path}.${result.name}`, result.html);
-      }
-
-      return result.rows[0];
-    });
+    return handlers.update(id, json).then(one);
   }
 
   return Object.assign({}, handlers, {
