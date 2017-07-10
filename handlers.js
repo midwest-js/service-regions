@@ -21,14 +21,14 @@ const columns = [
   'modifiedAt',
 ];
 
-module.exports = _.memoize((config) => {
+module.exports = _.memoize((state) => {
   // modules > project
 
   const handlers = factory({
-    db: config.db,
+    db: state.db,
     table: 'regions',
     columns,
-    emitter: config.emitter,
+    emitter: state.emitter,
   });
 
   function findHtmlByPath(path) {
