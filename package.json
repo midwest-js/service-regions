@@ -1,5 +1,5 @@
 {
-  "name": "midwest-service-regions",
+  "name": "@midwest/service-regions",
   "version": "0.0.4",
   "description": "",
   "main": "index.js",
