@@ -4,7 +4,7 @@
 const _ = require('lodash')
 
 // modules > midwest
-const factory = require('midwest/factories/rest-handlers')
+const factory = require('@bmp/pg/handlers')
 const { one } = require('@bmp/pg/result')
 
 const resolver = require('deep-equal-resolver')()
